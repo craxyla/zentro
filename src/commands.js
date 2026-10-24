@@ -107,7 +107,7 @@ export async function handleCommand(interaction) {
       const network = null;
       if (address.length > 160 || /\s/.test(address)) return interaction.reply({ content: 'That address format looks invalid.', ...privateReply });
       await updateStore(data => { data.receiving[asset] = address; });
-      return interaction.reply({ content: 'Receiving address saved for ' + asset + (network ? ' (' + network + ')' : '') + '.', ...privateReply });
+      return interaction.reply({ content: 'Receiving address saved for ' + asset + '.', ...privateReply });
     }
 
     if (commandName === 'upiqr') {
@@ -149,7 +149,7 @@ export async function handleCommand(interaction) {
     if (interaction.deferred || interaction.replied) return interaction.editReply({ content: message, embeds: [] }).catch(() => {});
     return interaction.reply({ content: message, ...privateReply }).catch(() => {});
   }
-} + money(market.price, 6), inline: true },
+}
       { name: '24h Change', value: market?.change == null ? 'N/A' : (market.change >= 0 ? '▲ ' : '▼ ') + money(Math.abs(market.change), 2) + '%', inline: true },
       { name: 'Transactions', value: result.transactions == null ? 'Not provided by this data source' : String(result.transactions), inline: true }
     )
@@ -162,10 +162,10 @@ export const commands = [
   new SlashCommandBuilder().setName('bal').setDescription('Check a public crypto wallet balance')
     .addStringOption(o => o.setName('asset').setDescription('Cryptocurrency').setRequired(true).addChoices(...assetChoices))
     .addStringOption(o => o.setName('address').setDescription('Public wallet address').setRequired(true))
-    .addStringOption(o => o.setName('network').setDescription('Required for USDT; ignored for other assets').addChoices(...networkChoices)),
+    ,
   new SlashCommandBuilder().setName('mybal').setDescription('Check your saved wallet balance')
     .addStringOption(o => o.setName('asset').setDescription('Cryptocurrency').setRequired(true).addChoices(...assetChoices))
-    .addStringOption(o => o.setName('network').setDescription('Required for USDT').addChoices(...networkChoices)),
+    ,
   new SlashCommandBuilder().setName('setmywallet').setDescription('Save a wallet address for your /mybal command')
     .addStringOption(o => o.setName('asset').setDescription('Cryptocurrency').setRequired(true).addChoices(...assetChoices))
     .addStringOption(o => o.setName('address').setDescription('Your public wallet address').setRequired(true))
@@ -211,17 +211,16 @@ export async function handleCommand(interaction) {
       if (address.length > 160 || /\s/.test(address)) return interaction.reply({ content: 'That address format looks invalid.', ...privateReply });
       await updateStore(data => {
         data.wallets[interaction.user.id] ||= {};
-        data.wallets[interaction.user.id][asset + (network ? ':' + network : '')] = address;
+        data.wallets[interaction.user.id][asset] = address;
       });
-      return interaction.reply({ content: 'Saved your ' + asset + (network ? ' (' + network + ')' : '') + ' wallet for /mybal.', ...privateReply });
+      return interaction.reply({ content: 'Saved your ' + asset + ' wallet for /mybal.', ...privateReply });
     }
 
     if (commandName === 'setaddy') {
       if (!isOwner(interaction)) return interaction.reply({ content: 'Only the configured bot owner can change receiving addresses.', ...privateReply });
       const asset = interaction.options.getString('asset', true);
       const address = interaction.options.getString('address', true).trim();
-      const network = asset === 'USDT' ? interaction.options.getString('network') : null;
-      if (asset === 'USDT' && !network) return interaction.reply({ content: 'Select a USDT network (TRC20 or ERC20).', ...privateReply });
+      const network = null;
       if (address.length > 160 || /\s/.test(address)) return interaction.reply({ content: 'That address format looks invalid.', ...privateReply });
       await updateStore(data => { data.receiving[asset + (network ? ':' + network : '')] = address; });
       return interaction.reply({ content: 'Receiving address saved for ' + asset + (network ? ' (' + network + ')' : '') + '.', ...privateReply });
