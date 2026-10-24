@@ -31,15 +31,19 @@ function balanceEmbed(result, address, market) {
     : result.asset === 'BTC' ? 'Bitcoin (BTC) Wallet'
     : result.asset === 'SOL' ? 'Solana (SOL) Wallet'
     : 'Tether (USDT) Wallet';
+  const amount = result.asset === 'USDT'
+    ? money(result.balance, 6) + ' USDT'
+    : money(result.balance) + ' ' + result.asset;
   const embed = new EmbedBuilder()
     .setColor(COLORS[result.asset] || 0xeeeeee)
     .setTitle(title)
     .setDescription('**Address**\n`' + address + '`\n**Network:** ' + result.network)
     .addFields(
-      { name: '◉ Balance', value: result.asset === 'USDT' ? money(result.balance, 6) + ' USDT' : money(result.balance) + ' ' + result.asset, inline: true },
+      { name: '◉ Balance', value: amount, inline: true },
       { name: 'Unconfirmed', value: result.unconfirmed == null ? 'N/A' : money(result.unconfirmed) + ' ' + result.asset, inline: true },
       { name: 'Total Received', value: result.received == null ? 'N/A' : money(result.received) + ' ' + result.asset, inline: true },
-      { name: 'Price', value: market?.price == null ? 'N/A' : '
+      { name: 'Price', value: market?.price == null ? 'N/A' : '$' + money(market.price, 6), inline: true },
+      { name: '24h Change', value: market?.change == null ? 'N/A' : (market.change >= 0 ? '▲ ' : '▼ ') + money(Math.abs(market.change), 2) + '%', inline: true },
       { name: 'Transactions', value: result.transactions == null ? 'Not provided by this data source' : String(result.transactions), inline: true }
     )
     .setFooter({ text: 'Zentro • Public blockchain data • Not financial advice' })
