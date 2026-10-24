@@ -4,7 +4,7 @@ A Discord **user-install-only** crypto utility app. Includes wallet balance look
 
 ## Commands
 
-- `/bal` — check an address on Bitcoin, Litecoin, Solana, or USDT on a selected network.
+- `/bal` — check an address on Bitcoin, Litecoin, or Solana.
 - `/mybal` — check the wallet saved for your Discord account.
 - `/setmywallet` — save your own wallet for `/mybal`.
 - `/setaddy` — owner-only: set a receiving address for payments.
@@ -27,7 +27,6 @@ On Bot-Hosting.net, set the startup command to `npm start` and add the environme
 ## Notes
 
 - The app uses public blockchain endpoints. They can rate-limit or go offline; the bot reports lookup errors instead of making up a balance.
-- USDT is network-specific. The selected network must match the address/network that actually holds the tokens. This version supports USDT on Ethereum (ERC-20) and TRON (TRC-20); token lookups depend on public API availability and may be rate-limited.
 - `/mybal` uses the wallet saved by that Discord user with `/setmywallet`. It does not access private keys or sign transactions.
 - User-installed apps are limited by Discord's interaction contexts and permissions. `/say` responds through the interaction, not by assuming server-wide message access.
 - Local JSON data survives restarts only if the hosting provider preserves the app's filesystem. Back up `data/` or use persistent storage if the host resets files during redeploys.
