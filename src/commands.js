@@ -18,7 +18,7 @@ function balanceEmbed(result, address, market) {
     : result.asset === 'BTC' ? 'Bitcoin (BTC) Wallet'
     : 'Solana (SOL) Wallet';
   const coinAmount = money(result.balance, 8) + ' ' + result.asset;
-  const usdValue = market?.price != null && result.balance != null ? ' '<:dollar:1352548946630938625>';
+  const usdValue = market?.price != null && result.balance != null ? String.fromCharCode(36) + money(result.balance * market.price, 2) : 'N/A';
   const ltc = '<a:Ltc:1561733420923490414>';
   const btc = '<:BTC:1450767429465800878>';
   const sol = '<:SOL:1551127866349985886>';
