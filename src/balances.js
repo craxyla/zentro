@@ -55,8 +55,8 @@ export async function getBalance(asset, address, network = null) {
     case 'USDT': {
       if (network === 'TRC20') {
         const d = await getJson(`https://apilist.tronscanapi.com/api/account/tokens?address=${encodeURIComponent(address)}&start=0&limit=200&hidden=0&show=0&sortType=0&sortBy=0`);
-        const token = (d.data || []).find(t => String(t.tokenAbbr || t.tokenName || '').toUpperCase() === 'USDT' &&
-          String(t.tokenId || t.tokenAddress || '').toLowerCase() === 'txla2f1bll8gjkw3q9kcw5xmwv6s9r4k4');
+        const token = (d.data || []).find(t => String(t.tokenAbbr || '').toUpperCase() === 'USDT' &&
+          String(t.tokenId || t.tokenAddress || '').toLowerCase() === 'txlaq63xg1nazckpwhvzw7csemlemeqcdj'.toLowerCase());
         if (!token) return { asset: 'USDT', network: 'TRC20 (TRON)', balance: 0, unconfirmed: null, received: null, transactions: null };
         return { asset: 'USDT', network: 'TRC20 (TRON)', balance: Number(token.balance || 0) / (10 ** Number(token.tokenDecimal ?? 6)), unconfirmed: null, received: null, transactions: null };
       }
@@ -80,4 +80,14 @@ export function formatAmount(value, max = 8) {
   if (value === null || value === undefined) return 'N/A';
   if (!Number.isFinite(value)) return 'N/A';
   return value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: max });
+}
+
+const COIN_IDS = { BTC: 'bitcoin', LTC: 'litecoin', SOL: 'solana', USDT: 'tether' };
+export async function getMarketInfo(asset) {
+  const id = COIN_IDS[asset];
+  if (!id) return null;
+  const d = await getJson('https://api.coingecko.com/api/v3/simple/price?ids=' + id + '&vs_currencies=usd&include_24hr_change=true');
+  const item = d[id];
+  if (!item || !Number.isFinite(item.usd)) return null;
+  return { price: item.usd, change: Number.isFinite(item.usd_24h_change) ? item.usd_24h_change : null };
 }
