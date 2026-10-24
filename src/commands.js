@@ -34,21 +34,28 @@ function balanceEmbed(result, address, market) {
   const amount = result.asset === 'USDT'
     ? money(result.balance, 6) + ' USDT'
     : money(result.balance) + ' ' + result.asset;
-  const embed = new EmbedBuilder()
+  const isLtc = result.asset === 'LTC';
+  const dollar = '<:dollar:1352548946630938625>';
+  const ltc = '<a:Ltc:1561733420923490414>';
+  const arrow = '<a:Arrow:1556798207055364108>';
+  const changeText = market?.change == null
+    ? 'N/A'
+    : (market.change >= 0 ? arrow : '▼') + ' ' + money(Math.abs(market.change), 2) + '%';
+  return new EmbedBuilder()
     .setColor(COLORS[result.asset] || 0xeeeeee)
     .setTitle(title)
-    .setDescription('**Address**\n`' + address + '`\n**Network:** ' + result.network)
+    .setDescription('`' + address + '`')
     .addFields(
-      { name: '◉ Balance', value: amount, inline: true },
-      { name: 'Unconfirmed', value: result.unconfirmed == null ? 'N/A' : money(result.unconfirmed) + ' ' + result.asset, inline: true },
-      { name: 'Total Received', value: result.received == null ? 'N/A' : money(result.received) + ' ' + result.asset, inline: true },
-      { name: 'Price', value: market?.price == null ? 'N/A' : '$' + money(market.price, 6), inline: true },
-      { name: '24h Change', value: market?.change == null ? 'N/A' : (market.change >= 0 ? '▲ ' : '▼ ') + money(Math.abs(market.change), 2) + '%', inline: true },
-      { name: 'Transactions', value: result.transactions == null ? 'Not provided by this data source' : String(result.transactions), inline: true }
+      { name: (isLtc ? ltc : '◉') + ' Balance', value: amount, inline: true },
+      { name: 'Unconfirmed', value: result.unconfirmed == null ? '$0.00' : money(result.unconfirmed) + ' ' + result.asset, inline: true },
+      { name: 'Total Received', value: result.received == null ? '$0.00' : money(result.received) + ' ' + result.asset, inline: true },
+      { name: (isLtc ? ltc : dollar) + ' Price', value: market?.price == null ? 'N/A' : '$' + money(market.price, 2), inline: true },
+      { name: arrow + ' 24h Change', value: changeText, inline: true },
+      { name: 'Last 5 Transactions', value: 'No recent transaction details available from this data source', inline: false },
+      { name: 'Transactions', value: result.transactions == null ? '0 Transactions' : String(result.transactions) + ' Transactions', inline: false }
     )
     .setFooter({ text: 'Zentro • Public blockchain data • Not financial advice' })
     .setTimestamp();
-  return embed;
 }
 
 export const commands = [
@@ -143,7 +150,7 @@ export async function handleCommand(interaction) {
       const asset = interaction.options.getString('asset', true);
       const network = asset === 'USDT' ? interaction.options.getString('network') : null;
       if (asset === 'USDT' && !network) return interaction.reply({ content: 'Select the USDT network (TRC20 or ERC20).', ...privateReply });
-      let address = interaction.options.getString('address');
+      let address = commandName === 'bal' ? interaction.options.getString('address', true) : null;
       if (commandName === 'mybal') {
         const data = await getStore();
         address = data.wallets[interaction.user.id]?.[asset + (network ? ':' + network : '')];
