@@ -34,7 +34,7 @@ function balanceEmbed(result, address, market) {
   const embed = new EmbedBuilder()
     .setColor(COLORS[result.asset] || 0xeeeeee)
     .setTitle(title)
-    .setDescription('**Address**\n`' + address + '`')
+    .setDescription('**Address**\n`' + address + '`\n**Network:** ' + result.network)
     .addFields(
       { name: '◉ Balance', value: result.asset === 'USDT' ? money(result.balance, 6) + ' USDT' : money(result.balance) + ' ' + result.asset, inline: true },
       { name: 'Unconfirmed', value: result.unconfirmed == null ? 'N/A' : money(result.unconfirmed) + ' ' + result.asset, inline: true },
@@ -266,7 +266,9 @@ export async function handleCommand(interaction) {
       }
       await interaction.deferReply(privateReply);
       const result = await getBalance(asset, address, network);
-      return interaction.editReply({ embeds: [balanceEmbed(result, address)] });
+      let market = null;
+      try { market = await getMarketInfo(asset); } catch (priceError) { console.warn('Market price unavailable:', priceError.message); }
+      return interaction.editReply({ embeds: [balanceEmbed(result, address, market)] });
     }
   } catch (error) {
     console.error('Command failed:', commandName, error);
