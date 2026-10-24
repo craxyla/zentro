@@ -93,7 +93,7 @@ export async function handleCommand(interaction) {
     if (commandName === 'setaddy') {
       const asset = interaction.options.getString('asset', true);
       const address = interaction.options.getString('address', true).trim();
-      if (!address || address.length > 160 || /\\s/.test(address)) {
+      if (!address || address.length > 160 || /\s/.test(address)) {
         return interaction.reply({ content: 'That address format looks invalid.', ...privateReply });
       }
       await updateStore(data => {
@@ -107,7 +107,7 @@ export async function handleCommand(interaction) {
 
     if (commandName === 'setupi') {
       const upiId = interaction.options.getString('upi_id', true).trim();
-      if (!/^[^\\s@]+@[^\\s@]+$/.test(upiId)) {
+      if (!/^[^\s@]+@[^\s@]+$/.test(upiId)) {
         return interaction.reply({ content: 'Please enter a valid-looking UPI ID, like name@bank.', ...privateReply });
       }
       await updateStore(data => { data.upiIds[interaction.user.id] = upiId; });
