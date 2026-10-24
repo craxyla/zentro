@@ -169,7 +169,7 @@ export const commands = [
   new SlashCommandBuilder().setName('setmywallet').setDescription('Save a wallet address for your /mybal command')
     .addStringOption(o => o.setName('asset').setDescription('Cryptocurrency').setRequired(true).addChoices(...assetChoices))
     .addStringOption(o => o.setName('address').setDescription('Your public wallet address').setRequired(true))
-    .addStringOption(o => o.setName('network').setDescription('Required for USDT').addChoices(...networkChoices)),
+
   new SlashCommandBuilder().setName('setaddy').setDescription('Owner: set a receiving wallet address')
     .addStringOption(o => o.setName('asset').setDescription('Cryptocurrency').setRequired(true).addChoices(...assetChoices))
     .addStringOption(o => o.setName('address').setDescription('Public receiving address').setRequired(true))
