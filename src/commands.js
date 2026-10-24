@@ -173,7 +173,6 @@ export const commands = [
   new SlashCommandBuilder().setName('setaddy').setDescription('Owner: set a receiving wallet address')
     .addStringOption(o => o.setName('asset').setDescription('Cryptocurrency').setRequired(true).addChoices(...assetChoices))
     .addStringOption(o => o.setName('address').setDescription('Public receiving address').setRequired(true))
-    .addStringOption(o => o.setName('network').setDescription('Required for USDT').addChoices(...networkChoices)),
   new SlashCommandBuilder().setName('upiqr').setDescription('Owner: upload or replace your UPI QR image')
     .addAttachmentOption(o => o.setName('image').setDescription('UPI QR image (PNG/JPG/WebP)').setRequired(true)),
   new SlashCommandBuilder().setName('payment').setDescription('Show configured receiving addresses and UPI QR'),
