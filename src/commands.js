@@ -81,7 +81,7 @@ export async function handleCommand(interaction) {
           '`/myupi` — show your saved UPI ID and QR',
           '`/upiqr` — save or replace your UPI QR image',
           '`/say` — send a public message'
-        ].join('\\n'));
+        ].join('\n'));
       return interaction.reply({ embeds: [embed], ...privateReply });
     }
 
