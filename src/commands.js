@@ -69,7 +69,7 @@ export const commands = [
   new SlashCommandBuilder().setName('say').setDescription('Reply with a message through Zentro')
     .addStringOption(o => o.setName('message').setDescription('Message to send').setRequired(true).setMaxLength(1900)),
   new SlashCommandBuilder().setName('help').setDescription('Show Zentro commands')
-].map(c => c.toJSON());
+].map(c => ({ ...c.toJSON(), integration_types: [1], contexts: [0, 1, 2] }));
 
 export async function handleCommand(interaction) {
   const { commandName } = interaction;
