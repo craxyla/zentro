@@ -52,25 +52,6 @@ export async function getBalance(asset, address, network = null) {
       if (d.error || !Number.isFinite(d.result?.value)) throw new Error('Solana provider could not verify that address.');
       return { asset: 'SOL', network: 'Solana', balance: d.result.value / 1e9, unconfirmed: null, received: null, transactions: null };
     }
-    case 'USDT': {
-      if (network === 'TRC20') {
-        const d = await getJson(`https://apilist.tronscanapi.com/api/account/tokens?address=${encodeURIComponent(address)}&start=0&limit=200&hidden=0&show=0&sortType=0&sortBy=0`);
-        const token = (d.data || []).find(t => String(t.tokenAbbr || '').toUpperCase() === 'USDT' &&
-          String(t.tokenId || t.tokenAddress || '').toLowerCase() === 'txlaq63xg1nazckpwhvzw7csemlemeqcdj'.toLowerCase());
-        if (!token) return { asset: 'USDT', network: 'TRC20 (TRON)', balance: 0, unconfirmed: null, received: null, transactions: null };
-        return { asset: 'USDT', network: 'TRC20 (TRON)', balance: Number(token.balance || 0) / (10 ** Number(token.tokenDecimal ?? 6)), unconfirmed: null, received: null, transactions: null };
-      }
-      if (network === 'ERC20') {
-        const d = await getJson('https://ethereum-rpc.publicnode.com', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'eth_call', params: [{ to: '0xdAC17F958D2ee523a2206206994597C13D831ec7', data: '0x70a08231' + address.toLowerCase().replace(/^0x/, '').padStart(64, '0') }, 'latest'] })
-        });
-        if (d.error || typeof d.result !== 'string') throw new Error('Ethereum provider could not verify that address.');
-        return { asset: 'USDT', network: 'ERC20 (Ethereum)', balance: Number(BigInt(d.result)) / 1e6, unconfirmed: null, received: null, transactions: null };
-      }
-      throw new Error('Choose the USDT network: TRC20 or ERC20.');
-    }
     default:
       throw new Error('Unsupported asset.');
   }
@@ -82,7 +63,7 @@ export function formatAmount(value, max = 8) {
   return value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: max });
 }
 
-const COIN_IDS = { BTC: 'bitcoin', LTC: 'litecoin', SOL: 'solana', USDT: 'tether' };
+const COIN_IDS = { BTC: 'bitcoin', LTC: 'litecoin', SOL: 'solana' };
 export async function getMarketInfo(asset) {
   const id = COIN_IDS[asset];
   if (!id) return null;
