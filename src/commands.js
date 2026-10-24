@@ -2,7 +2,6 @@ import { SlashCommandBuilder, EmbedBuilder, MessageFlags } from 'discord.js';
 import { getBalance, getMarketInfo, formatAmount } from './balances.js';
 import { getStore, updateStore } from './store.js';
 
-const ownerId = process.env.OWNER_ID;
 const COLORS = { BTC: 0xf7931a, LTC: 0x345d9d, SOL: 0x9945ff };
 const assetChoices = [
   { name: 'Bitcoin (BTC)', value: 'BTC' },
@@ -11,9 +10,6 @@ const assetChoices = [
 ];
 const privateReply = { flags: MessageFlags.Ephemeral };
 
-function isOwner(interaction) {
-  return Boolean(ownerId) && interaction.user.id === ownerId;
-}
 function money(value, max = 8) {
   return value == null ? 'N/A' : formatAmount(value, max);
 }
@@ -56,10 +52,10 @@ export const commands = [
   new SlashCommandBuilder().setName('setmywallet').setDescription('Save a wallet address for your /mybal command')
     .addStringOption(o => o.setName('asset').setDescription('Cryptocurrency').setRequired(true).addChoices(...assetChoices))
     .addStringOption(o => o.setName('address').setDescription('Your public wallet address').setRequired(true)),
-  new SlashCommandBuilder().setName('setaddy').setDescription('Owner: set a receiving wallet address')
+  new SlashCommandBuilder().setName('setaddy').setDescription('Set your own receiving wallet address')
     .addStringOption(o => o.setName('asset').setDescription('Cryptocurrency').setRequired(true).addChoices(...assetChoices))
     .addStringOption(o => o.setName('address').setDescription('Public receiving address').setRequired(true)),
-  new SlashCommandBuilder().setName('upiqr').setDescription('Owner: upload or replace your UPI QR image')
+  new SlashCommandBuilder().setName('upiqr').setDescription('Upload or replace your own UPI QR image')
     .addAttachmentOption(o => o.setName('image').setDescription('UPI QR image (PNG/JPG/WebP)').setRequired(true)),
   new SlashCommandBuilder().setName('payment').setDescription('Show configured receiving addresses and UPI QR'),
   new SlashCommandBuilder().setName('say').setDescription('Send a public message through Zentro')
@@ -76,8 +72,8 @@ export async function handleCommand(interaction) {
           '`/bal` — check a public address',
           '`/mybal` — check your saved wallet',
           '`/setmywallet` — save a wallet for /mybal',
-          '`/setaddy` — owner receiving addresses',
-          '`/upiqr` — owner UPI QR setup',
+          '`/setaddy` — save your own receiving address',
+          '`/upiqr` — save your own UPI QR',
           '`/payment` — display payment details',
           '`/say` — send a public message'
         ].join('\n'));
@@ -101,40 +97,38 @@ export async function handleCommand(interaction) {
     }
 
     if (commandName === 'setaddy') {
-      if (!isOwner(interaction)) return interaction.reply({ content: 'Only the configured bot owner can change receiving addresses.', ...privateReply });
       const asset = interaction.options.getString('asset', true);
       const address = interaction.options.getString('address', true).trim();
       if (address.length > 160 || /\s/.test(address)) return interaction.reply({ content: 'That address format looks invalid.', ...privateReply });
-      await updateStore(data => { data.receiving[asset] = address; });
-      return interaction.reply({ content: 'Receiving address saved for ' + asset + '.', ...privateReply });
+      await updateStore(data => { data.receiving[interaction.user.id] ||= {}; data.receiving[interaction.user.id][asset] = address; });
+      return interaction.reply({ content: 'Your receiving address for ' + asset + ' has been saved. Use /payment to view it.', ...privateReply });
     }
 
     if (commandName === 'upiqr') {
-      if (!isOwner(interaction)) return interaction.reply({ content: 'Only the configured bot owner can change the UPI QR.', ...privateReply });
       const attachment = interaction.options.getAttachment('image', true);
       if (!attachment.contentType?.startsWith('image/')) return interaction.reply({ content: 'Please upload a PNG, JPG, or WebP image.', ...privateReply });
-      await updateStore(data => { data.upiQrUrl = attachment.url; });
-      return interaction.reply({ content: 'UPI QR saved. Use /payment to display it.', ...privateReply });
+      await updateStore(data => { data.upiQrUrls[interaction.user.id] = attachment.url; });
+      return interaction.reply({ content: 'Your UPI QR is saved. Use /payment to display it.', ...privateReply });
     }
 
     if (commandName === 'payment') {
       const data = await getStore();
-      const personalWallets = data.wallets[interaction.user.id] || {};
-      const personalEntries = Object.entries(personalWallets);
-      const receivingEntries = Object.entries(data.receiving);
+      const userId = interaction.user.id;
+      const personalWallets = data.wallets[userId] || {};
+      const receivingEntries = Object.entries(data.receiving[userId] || {});
       const sections = [];
-      if (personalEntries.length) {
-        sections.push('**Your saved wallets**\n' + personalEntries.map(([asset, address]) => '**' + asset + '**\n`' + address + '`').join('\n\n'));
-      } else {
-        sections.push('**Your saved wallets**\nNo personal wallets saved yet. Use `/setmywallet` to add your own BTC, LTC, or SOL address.');
-      }
-      if (receivingEntries.length) {
-        sections.push('**Configured payment addresses**\n' + receivingEntries.map(([asset, address]) => '**' + asset + '**\n`' + address + '`').join('\n\n'));
-      }
-      const embed = new EmbedBuilder().setColor(0xeeeeee).setTitle('Zentro • Payment Details')
+      const walletEntries = Object.entries(personalWallets);
+      sections.push(walletEntries.length
+        ? '**Your saved balance-check wallets**\n' + walletEntries.map(([asset, address]) => '**' + asset + '**\n`' + address + '`').join('\n\n')
+        : '**Your saved balance-check wallets**\nNone saved yet. Use `/setmywallet` to set wallets for `/mybal`.');
+      sections.push(receivingEntries.length
+        ? '**Your receiving addresses**\n' + receivingEntries.map(([asset, address]) => '**' + asset + '**\n`' + address + '`').join('\n\n')
+        : '**Your receiving addresses**\nNone saved yet. Use `/setaddy` to set your own payment addresses.');
+      const embed = new EmbedBuilder().setColor(0xeeeeee).setTitle('Zentro • Your Payment Details')
         .setDescription(sections.join('\n\n'))
-        .setFooter({ text: 'Always verify the asset and network before sending.' });
-      if (data.upiQrUrl) embed.setImage(data.upiQrUrl);
+        .setFooter({ text: 'Only your own saved details are shown to you. Verify the asset and network before sending.' });
+      const qrUrl = data.upiQrUrls[userId];
+      if (qrUrl) embed.setImage(qrUrl);
       return interaction.reply({ embeds: [embed], ...privateReply });
     }
 
