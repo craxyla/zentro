@@ -119,9 +119,20 @@ export async function handleCommand(interaction) {
 
     if (commandName === 'payment') {
       const data = await getStore();
-      const entries = Object.entries(data.receiving);
+      const personalWallets = data.wallets[interaction.user.id] || {};
+      const personalEntries = Object.entries(personalWallets);
+      const receivingEntries = Object.entries(data.receiving);
+      const sections = [];
+      if (personalEntries.length) {
+        sections.push('**Your saved wallets**\n' + personalEntries.map(([asset, address]) => '**' + asset + '**\n`' + address + '`').join('\n\n'));
+      } else {
+        sections.push('**Your saved wallets**\nNo personal wallets saved yet. Use `/setmywallet` to add your own BTC, LTC, or SOL address.');
+      }
+      if (receivingEntries.length) {
+        sections.push('**Configured payment addresses**\n' + receivingEntries.map(([asset, address]) => '**' + asset + '**\n`' + address + '`').join('\n\n'));
+      }
       const embed = new EmbedBuilder().setColor(0xeeeeee).setTitle('Zentro • Payment Details')
-        .setDescription(entries.length ? entries.map(([key, address]) => '**' + key + '**\n`' + address + '`').join('\n\n') : 'No receiving addresses have been configured yet.')
+        .setDescription(sections.join('\n\n'))
         .setFooter({ text: 'Always verify the asset and network before sending.' });
       if (data.upiQrUrl) embed.setImage(data.upiQrUrl);
       return interaction.reply({ embeds: [embed], ...privateReply });
