@@ -27,7 +27,7 @@ On Bot-Hosting.net, set the startup command to `npm start` and add the environme
 
 - The app uses public blockchain endpoints. They can rate-limit or go offline; the bot reports lookup errors instead of making up a balance.
 - USDT is network-specific. The selected network must match the address/network that actually holds the tokens. This first version supports USDT on Ethereum (ERC-20) and TRON (TRC-20); token lookups depend on public API availability and may be rate-limited.
-- `/mybal` uses the wallet saved by that Discord user with `/setmywallet` (included as a subcommand under `/mybal`). It does not access private keys or sign transactions.
+- `/mybal` uses the wallet saved by that Discord user with the separate `/setmywallet` command. It does not access private keys or sign transactions.
 - User-installed apps cannot send ordinary bot messages in every context. Discord controls which interaction contexts and permissions are available. `/say` responds through the interaction and may be ephemeral depending on context.
 - Local JSON data survives restarts only if the hosting provider preserves the app's filesystem. Back up `data/` or use persistent storage if the host resets files during redeploys.
 - This project is a starter implementation; run `npm run check` and test each command in a private server/DM before relying on it for payments.
