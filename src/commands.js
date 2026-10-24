@@ -36,7 +36,10 @@ function balanceEmbed(result, address, market) {
     : money(result.balance) + ' ' + result.asset;
   const dollar = '<:dollar:1352548946630938625>';
   const ltc = '<a:Ltc:1561733420923490414>';
+  const btc = '<:BTC:1450767429465800878>';
+  const sol = '<:SOL:1551127866349985886>';
   const arrow = '<a:Arrow:1556798207055364108>';
+  const assetEmoji = result.asset === 'LTC' ? ltc : result.asset === 'BTC' ? btc : result.asset === 'SOL' ? sol : dollar;
   const changeText = market?.change == null
     ? 'N/A'
     : (market.change >= 0 ? arrow : '▼') + ' $' + money(Math.abs(market.change), 2);
@@ -45,10 +48,10 @@ function balanceEmbed(result, address, market) {
     .setTitle(title)
     .setDescription('`' + address + '`')
     .addFields(
-      { name: dollar + ' Balance', value: result.asset === 'LTC' ? '$' + money(result.balance, 2) : amount, inline: true },
+      { name: assetEmoji + ' Balance', value: amount, inline: true },
       { name: 'Unconfirmed', value: result.unconfirmed == null ? '$0.00' : '$' + money(result.unconfirmed, 2), inline: true },
       { name: 'Total Received', value: result.received == null ? '$0.00' : '$' + money(result.received, 2), inline: true },
-      { name: ltc + ' Price', value: market?.price == null ? 'N/A' : '$' + money(market.price, 2), inline: true },
+      { name: assetEmoji + ' Price', value: market?.price == null ? 'N/A' : dollar + ' ' + money(market.price, 2), inline: true },
       { name: arrow + ' 24h Change', value: changeText, inline: true },
       { name: 'Last 5 Transactions', value: 'No recent transactions found', inline: false },
       { name: '0 Transactions', value: '\u200b', inline: false }
