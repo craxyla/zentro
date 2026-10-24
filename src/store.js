@@ -3,8 +3,7 @@ import path from 'node:path';
 
 const DATA_DIR = path.resolve(process.env.DATA_DIR || 'data');
 const FILE = path.join(DATA_DIR, 'zentro.json');
-
-const defaults = { wallets: {}, receiving: {}, upiQrUrls: {} };
+const defaults = { wallets: {}, receiving: {}, upiQrUrls: {}, upiIds: {} };
 
 async function readStore() {
   await fs.mkdir(DATA_DIR, { recursive: true });
@@ -13,7 +12,8 @@ async function readStore() {
     return {
       wallets: parsed.wallets && typeof parsed.wallets === 'object' ? parsed.wallets : {},
       receiving: parsed.receiving && typeof parsed.receiving === 'object' ? parsed.receiving : {},
-      upiQrUrls: parsed.upiQrUrls && typeof parsed.upiQrUrls === 'object' ? parsed.upiQrUrls : {}
+      upiQrUrls: parsed.upiQrUrls && typeof parsed.upiQrUrls === 'object' ? parsed.upiQrUrls : {},
+      upiIds: parsed.upiIds && typeof parsed.upiIds === 'object' ? parsed.upiIds : {}
     };
   } catch (error) {
     if (error.code !== 'ENOENT') throw error;
