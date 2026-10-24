@@ -57,7 +57,6 @@ export const commands = [
     .addStringOption(o => o.setName('address').setDescription('Public receiving address').setRequired(true)),
   new SlashCommandBuilder().setName('upiqr').setDescription('Upload or replace your own UPI QR image')
     .addAttachmentOption(o => o.setName('image').setDescription('UPI QR image (PNG/JPG/WebP)').setRequired(true)),
-  new SlashCommandBuilder().setName('payment').setDescription('Show configured receiving addresses and UPI QR'),
   new SlashCommandBuilder().setName('say').setDescription('Send a public message through Zentro')
     .addStringOption(o => o.setName('message').setDescription('Message to send').setRequired(true).setMaxLength(1900)),
   new SlashCommandBuilder().setName('help').setDescription('Show Zentro commands')
@@ -74,7 +73,6 @@ export async function handleCommand(interaction) {
           '`/setmywallet` — save a wallet for /mybal',
           '`/setaddy` — save your own receiving address',
           '`/upiqr` — save your own UPI QR',
-          '`/payment` — display payment details',
           '`/say` — send a public message'
         ].join('\n'));
       return interaction.reply({ embeds: [embed], ...privateReply });
@@ -101,35 +99,14 @@ export async function handleCommand(interaction) {
       const address = interaction.options.getString('address', true).trim();
       if (address.length > 160 || /\s/.test(address)) return interaction.reply({ content: 'That address format looks invalid.', ...privateReply });
       await updateStore(data => { data.receiving[interaction.user.id] ||= {}; data.receiving[interaction.user.id][asset] = address; });
-      return interaction.reply({ content: 'Your receiving address for ' + asset + ' has been saved. Use /payment to view it.', ...privateReply });
+      return interaction.reply({ content: 'Your receiving address for ' + asset + ' has been saved.', ...privateReply });
     }
 
     if (commandName === 'upiqr') {
       const attachment = interaction.options.getAttachment('image', true);
       if (!attachment.contentType?.startsWith('image/')) return interaction.reply({ content: 'Please upload a PNG, JPG, or WebP image.', ...privateReply });
       await updateStore(data => { data.upiQrUrls[interaction.user.id] = attachment.url; });
-      return interaction.reply({ content: 'Your UPI QR is saved. Use /payment to display it.', ...privateReply });
-    }
-
-    if (commandName === 'payment') {
-      const data = await getStore();
-      const userId = interaction.user.id;
-      const personalWallets = data.wallets[userId] || {};
-      const receivingEntries = Object.entries(data.receiving[userId] || {});
-      const sections = [];
-      const walletEntries = Object.entries(personalWallets);
-      sections.push(walletEntries.length
-        ? '**Your saved balance-check wallets**\n' + walletEntries.map(([asset, address]) => '**' + asset + '**\n`' + address + '`').join('\n\n')
-        : '**Your saved balance-check wallets**\nNone saved yet. Use `/setmywallet` to set wallets for `/mybal`.');
-      sections.push(receivingEntries.length
-        ? '**Your receiving addresses**\n' + receivingEntries.map(([asset, address]) => '**' + asset + '**\n`' + address + '`').join('\n\n')
-        : '**Your receiving addresses**\nNone saved yet. Use `/setaddy` to set your own payment addresses.');
-      const embed = new EmbedBuilder().setColor(0xeeeeee).setTitle('Zentro • Your Payment Details')
-        .setDescription(sections.join('\n\n'))
-        .setFooter({ text: 'Only your own saved details are shown to you. Verify the asset and network before sending.' });
-      const qrUrl = data.upiQrUrls[userId];
-      if (qrUrl) embed.setImage(qrUrl);
-      return interaction.reply({ embeds: [embed], ...privateReply });
+      return interaction.reply({ content: 'Your UPI QR is saved.', ...privateReply });
     }
 
     if (commandName === 'bal' || commandName === 'mybal') {
